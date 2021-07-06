@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
@@ -10,58 +9,55 @@ namespace BinaryConfig
 	/// </summary>
 	public class EncryptionHandler
 	{
-		private List<DataContainer> containers;
-		private List<MiniDataContainer> miniContainers;
-
 		/// <summary>
-		/// Holds the containers to be encrypted which can then be retrieved later.
+		/// Holds the container to be encrypted which can then be retrieved later.
 		/// </summary>
 		[Serializable]
 		private struct ContainerHolder
 		{
-			private List<DataContainer> containers;
-			private List<MiniDataContainer> miniContainers;
+			private DataContainer container;
+			private MiniDataContainer miniContainer;
 
 			/// <summary>
 			/// Creates a new <see cref="ContainerHolder"/> object.
 			/// </summary>
 			/// <param name="Containers">The <em>DataContainers</em> to hold.</param>
-			public ContainerHolder(List<DataContainer> Containers)
+			public ContainerHolder(DataContainer Container)
 			{
-				containers = Containers;
-				miniContainers = new List<MiniDataContainer>();
+				container = Container;
+				miniContainer = null;
 			}
 
 			/// <summary>
 			/// Creates a new <see cref="ContainerHolder"/> object.
 			/// </summary>
 			/// <param name="MiniContainers">The <em>MiniContainers</em> to hold.</param>
-			public ContainerHolder(List<MiniDataContainer> MiniContainers)
+			public ContainerHolder(MiniDataContainer MiniContainer)
 			{
-				containers = new List<DataContainer>();
-				miniContainers = MiniContainers;
+				container = null;
+				miniContainer = MiniContainer;
 			}
 
 			/// <summary>
 			/// Retrieves the list of <em>DataContainers</em>.
 			/// </summary>
 			/// <returns>The list of <em>DataContainers</em>.</returns>
-			public List<DataContainer> GetContainers() => containers;
+			public DataContainer GetContainer() => container;
 
 			/// <summary>
 			/// Retrieves the list of <em>MiniDataContainers</em>.
 			/// </summary>
 			/// <returns>The list of <em>MiniDataContainers</em>.</returns>
-			public List<MiniDataContainer> GetMiniContainers() => miniContainers;
+			public MiniDataContainer GetMiniContainer() => miniContainer;
 
 			/// <summary>
 			/// Creates a new <see cref="ContainerHolder"/> object.
 			/// </summary>
 			/// <param name="Containers">The <em>DataContainers</em> to hold.</param>
 			/// <returns>A new <see cref="ContainerHolder"/>.</returns>
-			public static ContainerHolder CreateHolder(List<DataContainer> Containers)
+			public static ContainerHolder CreateHolder(DataContainer Container)
 			{
-				return new ContainerHolder(Containers);
+				return new ContainerHolder(Container);
 			}
 
 			/// <summary>
@@ -69,90 +65,24 @@ namespace BinaryConfig
 			/// </summary>
 			/// <param name="MiniContainers">The <em>MiniDataContainers</em> to hold.</param>
 			/// <returns>A new <see cref="ContainerHolder"/>.</returns>
-			public static ContainerHolder CreateHolder(List<MiniDataContainer> MiniContainers)
+			public static ContainerHolder CreateHolder(MiniDataContainer MiniContainer)
 			{
-				return new ContainerHolder(MiniContainers);
+				return new ContainerHolder(MiniContainer);
 			}
 		}
 
 		/// <summary>
-		/// Creates a new <see cref="EncryptionHandler"/> object.
+		/// Encrypts the given <paramref name="Container"/> into a file that can later be decrypted.
 		/// </summary>
 		/// <param name="Container">The <see cref="DataContainer"/> to encrypt.</param>
-		public EncryptionHandler(DataContainer Container)
+		public static void Encrypt(DataContainer Container)
 		{
-			containers = new List<DataContainer> { Container };
-		}
-
-		/// <summary>
-		/// Creates a new <see cref="EncryptionHandler"/> object.
-		/// </summary>
-		/// <param name="MiniContainer">The <see cref="MiniDataContainer"/> to encrypt.</param>
-		public EncryptionHandler(MiniDataContainer MiniContainer)
-		{
-			miniContainers = new List<MiniDataContainer> { MiniContainer };
-		}
-
-		/// <summary>
-		/// Creates a new <see cref="EncryptionHandler"/> object.
-		/// </summary>
-		/// <param name="Containers">The <em>DataContainers</em> to encrypt.</param>
-		public EncryptionHandler(List<DataContainer> Containers)
-		{
-			string outputFile = Containers[0].ContainerName;
-			List<DataContainer> newList = new List<DataContainer>();
-
-			foreach (DataContainer dc in Containers)
+			if (Container != null)
 			{
-				if (dc.ContainerName != outputFile)
-				{
-					newList.Add(new DataContainer(outputFile, dc.SubContainers));
-				}
-			}
-
-			containers = newList;
-		}
-
-		/// <summary>
-		/// Creates a new <see cref="EncryptionHandler"/> object.
-		/// </summary>
-		/// <param name="MiniContainers">The <em>MiniDateContainers</em> to encrypt.</param>
-		public EncryptionHandler(List<MiniDataContainer> MiniContainers)
-		{
-			string outputFile = MiniContainers[0].ContainerName;
-			List<MiniDataContainer> newList = new List<MiniDataContainer>();
-
-			foreach (MiniDataContainer mdc in MiniContainers)
-			{
-				if (mdc.ContainerName != outputFile)
-				{
-					newList.Add(new MiniDataContainer(outputFile, mdc.Value));
-				}
-			}
-
-			miniContainers = newList;
-		}
-
-		/// <summary>
-		/// Encrypts/serializese the data containers into a file.
-		/// </summary>
-		public void Encrypt()
-		{
-			if (containers.Count == 0)
-			{
-				using (FileStream encStream = new FileStream(containers[0].ContainerName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
+				using (FileStream encStream = new FileStream(Container.ContainerName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
 				{
 					BinaryFormatter bf = new BinaryFormatter();
-					bf.Serialize(encStream, ContainerHolder.CreateHolder(containers));
-					encStream.Close();
-				}
-			}
-			else if (miniContainers.Count == 0)
-			{
-				using (FileStream encStream = new FileStream(miniContainers[0].ContainerName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
-				{
-					BinaryFormatter bf = new BinaryFormatter();
-					bf.Serialize(encStream, ContainerHolder.CreateHolder(miniContainers));
+					bf.Serialize(encStream, ContainerHolder.CreateHolder(Container));
 					encStream.Close();
 				}
 			}
@@ -160,63 +90,208 @@ namespace BinaryConfig
 		}
 
 		/// <summary>
-		/// Decrypts the file encrypted by this <see cref="EncryptionHandler"/> and returns the <em>DataContainers</em> if any were encrypted.
+		/// Encrypts the given <paramref name="MiniContainer"/> into a file that can later be decrypted.
 		/// </summary>
-		/// <returns>The list of <em>DataContainers</em> encrypted into the file, otherwise <see langword="null"/>.</returns>
-		public List<DataContainer> DecryptAndGetContainers()
+		/// <param name="MiniContainer">The <see cref="MiniDataContainer"/> to encrypt.</param>
+		public static void Encrypt(MiniDataContainer MiniContainer)
 		{
-			List<DataContainer> containers = new List<DataContainer>();
-			using (FileStream encStream = new FileStream(this.containers[0].ContainerName, FileMode.Open, FileAccess.Read, FileShare.None))
+			if (MiniContainer != null)
 			{
-				BinaryFormatter bf = new BinaryFormatter();
-				ContainerHolder holder = ContainerHolderFromObject(bf.Deserialize(encStream));
-				if (holder.GetContainers() != null)
+				using (FileStream encStream = new FileStream(MiniContainer.ContainerName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
 				{
-					containers = holder.GetContainers();
+					BinaryFormatter bf = new BinaryFormatter();
+					bf.Serialize(encStream, ContainerHolder.CreateHolder(MiniContainer));
+					encStream.Close();
 				}
-				else throw CannotDecryptException;
-				encStream.Close();
 			}
-			return containers;
+			else throw CannotEncryptException;
 		}
 
 		/// <summary>
-		/// Decrypts the file encrypted by this <see cref="EncryptionHandler"/> and returns the <em>MiniDataConainers</em> if any were encrypted.
+		/// Attempts to encrypt the given <paramref name="Container"/> into a file that can be later decrypted.
 		/// </summary>
-		/// <returns>The list of <em>MiniDataContainers</em> encrypted into the file, otherwise <see langword="null"/>.</returns>
-		public List<MiniDataContainer> DecryptAndGetMiniContainers()
+		/// <param name="Container">The <see cref="DataContainer"/> to attempt to encrypt.</param>
+		/// <returns>
+		/// <see langword="true"/>, If the <paramref name="Container"/> was successfully encrypted.<br/>
+		/// <see langword="false"/>, If the <paramref name="Container"/> failed to get encrypted.
+		/// </returns>
+		public static bool TryEncrypt(DataContainer Container)
 		{
-			List<MiniDataContainer> miniContainers = new List<MiniDataContainer>();
-			using (FileStream encStream = new FileStream(this.miniContainers[0].ContainerName, FileMode.Open, FileAccess.Read, FileShare.None))
+			if (Container != null)
 			{
-				BinaryFormatter bf = new BinaryFormatter();
-				ContainerHolder holder = ContainerHolderFromObject(bf.Deserialize(encStream));
-				if (holder.GetMiniContainers() != null)
+				using (FileStream encStream = new FileStream(Container.ContainerName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
 				{
-					miniContainers = holder.GetMiniContainers();
+					BinaryFormatter bf = new BinaryFormatter();
+					bf.Serialize(encStream, ContainerHolder.CreateHolder(Container));
+					encStream.Close();
+					return true;
 				}
-				else throw CannotDecryptException;
-				encStream.Close();
 			}
-			return miniContainers;
+			else return false;
+		}
+
+		/// <summary>
+		/// Attempts to encrypt the given <paramref name="MiniContainer"/> into a file that can be later decrypted.
+		/// </summary>
+		/// <param name="MiniContainer">The <see cref="MiniDataContainer"/> to attempt to encrypt.</param>
+		/// <returns>
+		/// <see langword="true"/>, If the <paramref name="MiniContainer"/> was successfully encrypted.<br/>
+		/// <see langword="false"/>, If the <paramref name="MiniContainer"/> failed to get encrypted.
+		/// </returns>
+		public static bool TryEncrypt(MiniDataContainer MiniContainer)
+		{
+			if (MiniContainer != null)
+			{
+				using (FileStream encStream = new FileStream(MiniContainer.ContainerName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
+				{
+					BinaryFormatter bf = new BinaryFormatter();
+					bf.Serialize(encStream, ContainerHolder.CreateHolder(MiniContainer));
+					encStream.Close();
+					return true;
+				}
+			}
+			else return false;
+		}
+
+		/// <summary>
+		/// Decrypts the specified <paramref name="EncryptedFile"/> and returns a <see cref="DataContainer"/> stored within a <see cref="ContainerHolder"/> for encryption safety.
+		/// </summary>
+		/// <param name="EncryptedFile">The file to decrypt and get a <see cref="DataContainer"/> from.</param>
+		/// <returns>A <see cref="DataContainer"/> retrieved from the encrypted file.</returns>
+		public static DataContainer DecryptContainer(string EncryptedFile)
+		{
+			if (File.Exists(EncryptedFile))
+			{
+				DataContainer container = null;
+				using (FileStream decStream = new FileStream(EncryptedFile, FileMode.Open, FileAccess.Read, FileShare.None))
+				{
+					BinaryFormatter bf = new BinaryFormatter();
+					ContainerHolder holder = ContainerHolderFromObject(bf.Deserialize(decStream));
+					if (holder.GetContainer() != null)
+					{
+						container = holder.GetContainer();
+					}
+					else throw CannotDecryptException;
+					decStream.Close();
+				}
+				return container;
+			}
+			else throw EncryptedFileNotFound;
+		}
+
+		/// <summary>
+		/// Decrypts the specified <paramref name="EncryptedFile"/> and returns a <see cref="MiniDataContainer"/> stored within a <see cref="ContainerHolder"/> for encryption safety.
+		/// </summary>
+		/// <param name="EncryptedFile">The file to decrypt and get a <see cref="MiniDataContainer"/> from.</param>
+		/// <returns>A <see cref="MiniDataContainer"/> retrieved from the encrypted file.</returns>
+		public static MiniDataContainer DecryptMiniContainer(string EncryptedFile)
+		{
+			if (File.Exists(EncryptedFile))
+			{
+				MiniDataContainer miniContainer = null;
+				using (FileStream decStream = new FileStream(EncryptedFile, FileMode.Open, FileAccess.Read, FileShare.None))
+				{
+					BinaryFormatter bf = new BinaryFormatter();
+					ContainerHolder holder = ContainerHolderFromObject(bf.Deserialize(decStream));
+					if (holder.GetMiniContainer() != null)
+					{
+						miniContainer = holder.GetMiniContainer();
+					}
+					else throw CannotDecryptException;
+					decStream.Close();
+				}
+				return miniContainer;
+			}
+			else throw EncryptedFileNotFound;
+		}
+
+		/// <summary>
+		/// Attempts to decrypt the specified <paramref name="EncryptedFile"/> and returns a <see cref="DataContainer"/> if it was a success.
+		/// </summary>
+		/// <param name="EncryptedFile">The file to decrypt and get a <see cref="DataContainer"/> from.</param>
+		/// <param name="Container">The <see cref="DataContainer"/> to return.</param>
+		/// <returns>
+		/// <see langword="true"/>, If the decryption succeeded.
+		/// <see langword="false"/>, If the decryption failed.
+		/// </returns>
+		public static bool TryDecryptContainer(string EncryptedFile, out DataContainer Container)
+		{
+			if (File.Exists(EncryptedFile))
+			{
+				using (FileStream decStream = new FileStream(EncryptedFile, FileMode.Open, FileAccess.Read, FileShare.None))
+				{
+					BinaryFormatter bf = new BinaryFormatter();
+					ContainerHolder holder = ContainerHolderFromObject(bf.Deserialize(decStream));
+					if (holder.GetContainer() != null)
+					{
+						Container = holder.GetContainer();
+					}
+					else throw CannotDecryptException;
+					decStream.Close();
+					return true;
+				}
+			}
+			else
+			{
+				Container = null;
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Attempts to decrypt the specified <paramref name="EncryptedFile"/> and returns a <see cref="MiniDataContainer"/> if it was a success.
+		/// </summary>
+		/// <param name="EncryptedFile">The file to decrypt and get a <see cref="DataContainer"/> from.</param>
+		/// <param name="MiniContainer">The <see cref="MiniDataContainer"/> to return.</param>
+		/// <returns>
+		/// <see langword="true"/>, If the decryption succeeded.<br/>
+		/// <see langword="false"/>, If the decryption failed.
+		/// </returns>
+		public static bool TryDecryptMiniContainer(string EncryptedFile, out MiniDataContainer MiniContainer)
+		{
+			if (File.Exists(EncryptedFile))
+			{
+				using (FileStream decStream = new FileStream(EncryptedFile, FileMode.Open, FileAccess.Read, FileShare.None))
+				{
+					BinaryFormatter bf = new BinaryFormatter();
+					ContainerHolder holder = ContainerHolderFromObject(bf.Deserialize(decStream));
+					if (holder.GetMiniContainer() != null)
+					{
+						MiniContainer = holder.GetMiniContainer();
+					}
+					else throw CannotDecryptException;
+					decStream.Close();
+					return true;
+				}
+			}
+			else
+			{
+				MiniContainer = null;
+				return false;
+			}
 		}
 
 		/// <summary>
 		/// The <see cref="InvalidOperationException"/> thrown when no data containers were specified in the constructor.
 		/// </summary>
-		private InvalidOperationException CannotEncryptException => new InvalidOperationException("Cannot encrypt data containers because none were given.");
+		private static InvalidOperationException CannotEncryptException => new InvalidOperationException("Cannot encrypt data containers because none were given.");
 
 		/// <summary>
 		/// The <see cref="InvalidOperationException"/> thrown when no data containers were found from the decryption of the file.
 		/// </summary>
-		private InvalidOperationException CannotDecryptException => new InvalidOperationException("Decryption failed because no containers were encrypted into the file."); 
+		private static InvalidOperationException CannotDecryptException => new InvalidOperationException("Decryption failed because no containers were encrypted into the file.");
+
+		/// <summary>
+		/// The <see cref="FileNotFoundException"/> thrown when the specified encrypted file was not found in the device.
+		/// </summary>
+		private static FileNotFoundException EncryptedFileNotFound => new FileNotFoundException("Couldn't decrypt the file because there is no file.");
 
 		/// <summary>
 		/// Converts a basic <see cref="object"/> into a <see cref="ContainerHolder"/>.
 		/// </summary>
 		/// <param name="value">The value to convert.</param>
 		/// <returns></returns>
-		private ContainerHolder ContainerHolderFromObject(object value)
+		private static ContainerHolder ContainerHolderFromObject(object value)
 		{
 			return (ContainerHolder)value;
 		}
