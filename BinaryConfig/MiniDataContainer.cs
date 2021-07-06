@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace BinaryConfig
 {
@@ -80,5 +81,24 @@ namespace BinaryConfig
 		/// Used for the <see cref="EncryptionHandler"/> to make all of the <em>MiniDataContainers</em> encrypt in the same file.
 		/// </summary>
 		internal string Value => value;
+
+		/// <summary>
+		/// Converts the current <see cref="MiniDataContainer"/> to a <see cref="SubDataContainer"/>.
+		/// </summary>
+		/// <returns>The converted <see cref="SubDataContainer"/>.</returns>
+		public SubDataContainer ToSDC()
+		{
+			return new SubDataContainer(Value);
+		}
+
+		/// <summary>
+		/// Converts the current <see cref="MiniDataContainer"/> to a <see cref="DataContainer"/> with a pre-defined <see cref="SubDataContainer"/>.
+		/// </summary>
+		/// <returns>The converted <see cref="DataContainer"/>.</returns>
+		public DataContainer ToDC()
+		{
+			SubDataContainer sdc = ToSDC();
+			return new DataContainer(containerName, new List<SubDataContainer> { sdc });
+		}
 	}
 }
