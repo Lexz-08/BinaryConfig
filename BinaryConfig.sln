@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31402.337
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BinaryConfig", "BinaryConfig\BinaryConfig.csproj", "{20FBD74E-0CF7-4D31-BF7C-4CF37F272021}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{20FBD74E-0CF7-4D31-BF7C-4CF37F272021}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20FBD74E-0CF7-4D31-BF7C-4CF37F272021}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20FBD74E-0CF7-4D31-BF7C-4CF37F272021}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20FBD74E-0CF7-4D31-BF7C-4CF37F272021}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F1ADDDE5-BFEF-482E-8219-DF7E922BFF52}
+	EndGlobalSection
+EndGlobal
